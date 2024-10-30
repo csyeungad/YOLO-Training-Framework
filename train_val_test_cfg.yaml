@@ -1,0 +1,45 @@
+dataset : MIS_data_for_trial_crop_no_pass # MIS_data_for_trial_all / MIS_data_for_trial_no_pass / MIS_data_for_trial_crop_no_pass / MIS_data_for_trial_crop_all
+project : MIS_crop_no_pass # MIS / MIS_no_pass / MIS_crop / MIS_crop_no_pass
+name : test
+
+#For training: resume / from pretrain /from scratch
+train_cfg:
+  resume_chkpt: null #set at chkpts to resume or null not too resume 
+  pretrain_chkpt: ./train_out/MIS_crop_no_pass/trial_2/weights/best.pt #use pretrain chkpt or null to train from scratch
+  model_cfg_yaml: yolo11m_MIS.yaml #model to train from scratch
+  train_param: #Refer to default.yaml for all parameters
+    epochs: 10                 # Number of epochs to train for. Use more epochs, 1 is set for testing code.
+    imgsz: 640                  # Size of input images as integer, imgze : a -> resize longest size to a, while keeping aspect ratio, imgze : (w, h) -> resize img into square
+    rect : False                # True: Pad img after resize to square, False: keep original aspect ratio
+    batch: 5                    # Number of images per batch
+    patience : 20
+    lr0 : 0.01
+    workers : 1 
+    single_cls : False          # (bool) train multi-class data as single-class
+    optimizer: auto             # Optimizer to use, choices:[SGD, Adam, Adamax, AdamW, NAdam, RAdam, RMSProp, auto]
+    save_period : 25            #interval for chkpts save
+    plots : True                #save plots and images during train/val
+    fraction : 1.0              #train with subset of dataset, 1.0 for full dataset
+    exist_ok : True             #If True, allows overwriting of an existing project/name directory
+    box : 0.5                   # default: 7.5
+    cls : 0.5                   # default: 0.5
+    scale : 0.2
+    fliplr : 0.0                #flip prob.
+    mosaic : 0                  # Combines four training images into one, simulating different scene compositions and object interactions
+    close_mosaic : 0
+    multi_scale : False         # (bool) Whether to use multiscale during training
+
+#For validation & prediction in Testing set
+test_cfg: #Refer to default.yaml for all parameters
+  model_chkpt: best.pt          #chkpt for testing e.g. best.pt / last.pt        
+  test_param:
+    split: val                  #val / test dataset
+    batch: 5
+    imgsz: 640
+    conf: 0.6
+    iou: 0.6
+    save_json : True
+    plots : True
+    verbose : False
+    exist_ok : True
+  
