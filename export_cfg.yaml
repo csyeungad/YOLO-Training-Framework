@@ -1,0 +1,9 @@
+export_cfg:
+  model_chkpt: .\train_out\classify\imagenet\imagenet\weights\best.pt      #relative path for chkpt/deployed model, e.g. .pt, .onnx, .engine .torchscript
+  export_param:
+    format: onnx #e.g. onnx, torchscript, engine
+    imgsz: 320 # Desired image size for the model input. Can be an integer for square images or a tuple (height, width) for specific dimensions
+    half: false # Enables FP16 quantization, reducing model size and potentially speeding up inference
+    int8:  false # 	Enables INT8 quantization, highly beneficial for edge deployments
+    dynamic: false # Allows dynamic input sizes for ONNX, TensorRT and OpenVINO exports, enhancing flexibility in handling varying image dimensions.
+    device: 0 #Specifies the device for exporting: GPU (device=0), CPU (device=cpu)

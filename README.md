@@ -6,40 +6,54 @@ All training/testing/prediction/deployment of yolo model in one place.
 
 Prepare the datasets into YOLO format and saved in below folder structures.
 
+
 ### Object detection
-    datasets
-        |---dataset name
-            |---images
-            |   |---train
-            |   |---val
-            |   |---test
-            |
-            |---labels
-            |   |---train
-            |   |---val
-            |   |---test
+Refer to YOLO documentation:
+https://docs.ultralytics.com/datasets/detect/#ultralytics-yolo-format
 
-        
+Below shows the snapshot of the folder structure:
+
+    datasets
+    |---dataset name
+        |---images
+        |   |---train
+        |   |   |---img_1.jpg
+        |   |   |---img_2.jpg
+        |   |---val
+        |   |---test
+        |
+        |---labels
+        |   |---train
+        |   |   |---image_1.txt
+        |   |   |---image_2.txt
+        |   |---val
+        |   |---test
+
+
 ### Classification
+Refer to YOLO documentation:
+https://docs.ultralytics.com/datasets/classify/#dataset-structure-for-yolo-classification-tasks
+
+Below shows the snapshot of the folder structure:
+
     datasets
-        |---dataset name
-            |---train
-            |   |---class_1
-            |   |---class_2
-            |   |---class_3
-            |
-            |---val
-            |   |---class_1
-            |   |---class_2
-            |   |---class_3
-            |
-            |---test
-            |   |---class_1
-            |   |---class_2
-            |   |---class_3
+    |---dataset name
+        |---train
+        |   |---class_1
+        |   |   |---img_1.jpg
+        |   |   |---img_2.jpg
+        |   |---class_2
+        |
+        |---val
+        |   |---class_1
+        |   |---class_2
+        |
+        |---test
+        |   |---class_1
+        |   |---class_2
 
 
-## Configuration 
+## Train \ val \ test Configuration 
 
 All trainings \ testing \ prediction are managed in the **train_val_test_cfg.yaml** config files. Adjust the setting for customised model training \ evaluation \ testing. 
 
@@ -88,6 +102,8 @@ All trainings \ testing \ prediction are managed in the **train_val_test_cfg.yam
         verbose : False
         exist_ok : True
 
+## Inference Configuration 
+
 For performing inference on dataset with or without ground truth label. Adjust the setting in the **infer_cfg.yaml** for prediction. 
 
 **infer_cfg.yaml**
@@ -110,6 +126,21 @@ For performing inference on dataset with or without ground truth label. Adjust t
         save_txt : False
         show : False
 
+## Model deployment Configuration 
+To deploy a chkpt into a specific format. 
+Adjust the **export_cfg.yaml** config.
+
+**export_cfg.yaml**
+
+    export_cfg:
+    model_chkpt: .\train_out\classify\imagenet\imagenet\weights\best.pt      #relative path for chkpt/deployed model, e.g. .pt, .onnx, .engine .torchscript
+    export_param:
+        format: onnx #e.g. onnx, torchscript, engine
+        imgsz: 320 # Desired image size for the model input. Can be an integer for square images or a tuple (height, width) for specific dimensions
+        half: false # Enables FP16 quantization, reducing model size and potentially speeding up inference
+        int8:  false # 	Enables INT8 quantization, highly beneficial for edge deployments
+        dynamic: false # Allows dynamic input sizes for ONNX, TensorRT and OpenVINO exports, enhancing flexibility in handling varying image dimensions.
+        device: 0 #Specifies the device for exporting: GPU (device=0), CPU (device=cpu)
 
 
 ## Model predictions attributes and methods
