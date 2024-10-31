@@ -1,23 +1,13 @@
-dataset : infer_trial_MIS_crop # MIS_data_for_trial_all / MIS_data_for_trial_no_pass / MIS_data_for_trial_crop_no_pass / MIS_data_for_trial_crop_all
-#YOLO
-#  datasets
-#     dataset
-#       images
-#         img_1.jpg
-#       labels
-#         img_1.txt
-#
-
-project : test_infer # name the output project
-name : test # name the output name
-
-#For prediction data with/without gt
+task: classify  #YOLO task, i.e. detect, segment, classify
+dataset : imagenet10 
+project : imagenet # name the output project
+name : imagenet # name the output name
 infer_cfg:
-  model_chkpt: .\train_out\MIS_crop_no_pass\trial_2\weights\best.engine      #full path to chkpt to load for testing, e.g. .onnx .engine .torchscript             
+  model_chkpt: .\train_out\classify\imagenet\imagenet\weights\best.pt      #relative path for chkpt/deployed model, e.g. .pt, .onnx, .engine .torchscript
   infer_param:
     imgsz: 640
-    conf: 0.8
-    iou: 0.6
+    conf: 0.1
+    iou: 0.1
     save_json : True
     plots : True
     save : False
