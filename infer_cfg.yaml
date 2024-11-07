@@ -4,6 +4,7 @@ project : imagenet # name the output project
 name : imagenet # name the output name
 infer_cfg:
   model_chkpt: .\train_out\classify\imagenet\imagenet\weights\best.pt      #relative path for chkpt/deployed model, e.g. .pt, .onnx, .engine .torchscript
+  CM_grouping_vis: True         # whether to group the prediction result in CM for visualization if labels are given (Recommended for debugging)
   infer_param:
     imgsz: 640
     conf: 0.1

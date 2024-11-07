@@ -24,10 +24,25 @@ Below shows the snapshot of the folder structure:
         |
         |---labels
         |   |---train
-        |   |   |---image_1.txt
-        |   |   |---image_2.txt
+        |   |   |---img_1.txt
+        |   |   |---img_2.txt
         |   |---val
         |   |---test
+
+Below shows the snapshot for inference data folder structure:
+
+Note: Labels for the inference data is optional
+
+    datasets
+    |---dataset name
+        |---images
+        |   |---img_1.jpg
+        |   |---img_2.jpg
+        |
+        |---labels (optional)
+        |   |---img_1.txt
+        |   |---img_2.txt
+
 
 
 ### Classification
@@ -53,7 +68,9 @@ Below shows the snapshot of the folder structure:
         |   |---class_2
 
 
-## Train \ val \ test Configuration 
+## Configuration
+
+### Train \ val \ test Configuration 
 
 All trainings \ testing \ prediction are managed in the **train_val_test_cfg.yaml** config files. Adjust the setting for customised model training \ evaluation \ testing. 
 
@@ -65,14 +82,14 @@ All trainings \ testing \ prediction are managed in the **train_val_test_cfg.yam
     name : imagenet
 
     train_cfg:
-    resume_chkpt: null #relative path to chkpts to resume or null not too resume 
-    pretrain_chkpt: ./train_out/classify/imagenet10/imagenet/weights/best.pt #relative path to pretrain chkpt or null to train from scratch
+    resume_chkpt: null # chkpts names to resume or null not too resume  
+    pretrain_chkpt: D:/YOLO/train_out/classify/imagenet10/imagenet/weights/best.pt #abs path to pretrain chkpt or null to train from scratch
     model_cfg_yaml: yolo11n-cls.yaml #model configuration to train from scratch
     train_param:
-        epochs: 10                 # Number of epochs to train for. Use more epochs, 1 is set for testing code.
+        epochs: 10                  # Number of epochs to train for.
         imgsz: 640                  # Size of input images as integer, imgze : a -> resize longest size to a, while keeping aspect ratio, imgze : (w, h) -> resize img into square
         rect : False                # True: Pad img after resize to square, False: keep original aspect ratio
-        batch: 5                    # Number of images per batch
+        batch: 5                    # Specific batch size: batch=16 / Auto mode for % GPU memory utilization (batch= 0.70)
         patience : 20
         lr0 : 0.01
         workers : 1 
@@ -92,6 +109,7 @@ All trainings \ testing \ prediction are managed in the **train_val_test_cfg.yam
 
     test_cfg:
     chkpt: best.pt                #chkpt to load for testing
+    CM_grouping_vis: True         # whether to group the prediction result in CM for visualization (Recommended for debugging)
     test_param:
         batch: 5
         imgsz: 640
@@ -102,7 +120,7 @@ All trainings \ testing \ prediction are managed in the **train_val_test_cfg.yam
         verbose : False
         exist_ok : True
 
-## Inference Configuration 
+### Inference Configuration 
 
 For performing inference on dataset with or without ground truth label. Adjust the setting in the **infer_cfg.yaml** for prediction. 
 
@@ -113,7 +131,8 @@ For performing inference on dataset with or without ground truth label. Adjust t
     project : imagenet # name the output project
     name : imagenet # name the output name
     infer_cfg:
-    model_chkpt: .\train_out\classify\imagenet10\imagenet\weights\best.engine #relative path for chkpt/deployed model, e.g. .pt, .onnx, .engine .torchscript             
+    model_chkpt: .\train_out\classify\imagenet10\imagenet\weights\best.engine #relative path for chkpt/deployed model, e.g. .pt, .onnx, .engine .torchscript
+    CM_grouping_vis: True         # whether to group the prediction result in CM for visualization if labels are given (Recommended for debugging)             
     infer_param:
         imgsz: 640
         conf: 0.1
@@ -126,7 +145,7 @@ For performing inference on dataset with or without ground truth label. Adjust t
         save_txt : False
         show : False
 
-## Model deployment Configuration 
+### Model deployment Configuration 
 To deploy a chkpt into a specific format. 
 Adjust the **export_cfg.yaml** config.
 
@@ -142,6 +161,15 @@ Adjust the **export_cfg.yaml** config.
         dynamic: false # Allows dynamic input sizes for ONNX, TensorRT and OpenVINO exports, enhancing flexibility in handling varying image dimensions.
         device: 0 #Specifies the device for exporting: GPU (device=0), CPU (device=cpu)
 
+## Testing and inference result analysis
+
+After performing testing on either the validation or testing of the dataset, there will be multiple folders generated for analysis and visulizing model performance
+
+Below folders are created:
+
+    pred_imgs:      prediction visualization
+    pred_labels:    prediction labels (backgrounds are excluded)
+    pred_crop:      prediction bounding box crops
 
 ## Model predictions attributes and methods
 

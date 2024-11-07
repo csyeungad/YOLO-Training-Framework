@@ -33,6 +33,7 @@ train_cfg:
 #For validation & prediction in val or testing set
 test_cfg: #Refer to default.yaml for all parameters
   model_chkpt: best.pt          #chkpt for testing e.g. best.pt / last.pt        
+  CM_grouping_vis: True         # whether to group the prediction result in CM for visualization (Recommended for debugging)
   test_param:
     split: val                  #val / test dataset
     batch: 5
