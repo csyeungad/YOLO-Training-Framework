@@ -28,6 +28,8 @@ Below shows the snapshot of the folder structure:
         |   |   |---img_2.txt
         |   |---val
         |   |---test
+        |
+        |---dataset.yaml
 
 Below shows the snapshot for inference data folder structure:
 
@@ -106,12 +108,13 @@ All trainings \ testing \ prediction are managed in the **train_val_test_cfg.yam
         mosaic : 0                  # Combines four training images into one, simulating different scene compositions and object interactions
         close_mosaic : 0
         multi_scale : False         # (bool) Whether to use multiscale during training
+        device : 0                  # Device for training device = 0,1
 
     test_cfg:
     chkpt: best.pt                #chkpt to load for testing
     CM_grouping_vis: True         # whether to group the prediction result in CM for visualization (Recommended for debugging)
     test_param:
-        batch: 5
+        batch: 5                  # batch size, must be >=1
         imgsz: 640
         conf: 0.6
         iou: 0.6
@@ -167,59 +170,7 @@ After performing testing on either the validation or testing of the dataset, the
 
 Below folders are created:
 
-    pred_imgs:      prediction visualization
-    pred_labels:    prediction labels (backgrounds are excluded)
-    pred_crop:      prediction bounding box crops
-
-## Model predictions attributes and methods
-
-**model.predict()**
-
-    Attributes:
-        orig_img (numpy.ndarray): Original image as a numpy array.
-        orig_shape (Tuple[int, int]): Original image shape in (height, width) format.
-        boxes (Boxes | None): Object containing detection bounding boxes.
-            cls: tensor([3.], device='cuda:0')
-            conf: tensor([0.8872], device='cuda:0')
-            data: tensor([[ 60.1841, 250.9542, 152.9188, 334.8365,   0.8872,   3.0000]], device='cuda:0')
-            id: None
-            is_track: False
-            orig_shape: (1305, 1528)
-            shape: torch.Size([1, 6])
-            xywh: tensor([[106.5515, 292.8954,  92.7347,  83.8824]], device='cuda:0')
-            xywhn: tensor([[0.0697, 0.2244, 0.0607, 0.0643]], device='cuda:0')
-            xyxy: tensor([[ 60.1841, 250.9542, 152.9188, 334.8365]], device='cuda:0')
-            xyxyn: tensor([[0.0394, 0.1923, 0.1001, 0.2566]], device='cuda:0')
-        masks (Masks | None): Object containing detection masks.
-        probs (Probs | None): Object containing class probabilities for classification tasks.
-            data: tensor([0.1930, 0.3711, 0.2400, 0.1959], device='cuda:0')
-            orig_shape: None
-            shape: torch.Size([4])
-            top1: 1
-            top1conf: tensor(0.3711, device='cuda:0')
-            top5: [1, 2, 3, 0]
-            top5conf: tensor([0.3711, 0.2400, 0.1959, 0.1930], device='cuda:0')
-        keypoints (Keypoints | None): Object containing detected keypoints for each object.
-        obb (OBB | None): Object containing oriented bounding boxes.
-        speed (Dict[str, float | None]): Dictionary of preprocess, inference, and postprocess speeds.
-        names (Dict[int, str]): Dictionary mapping class IDs to class names.
-        path (str): Path to the image file.
-        _keys (Tuple[str, ...]): Tuple of attribute names for internal use.
-    
-
-    
-    Methods:
-        update: Updates object attributes with new detection results.
-        cpu: Returns a copy of the Results object with all tensors on CPU memory.
-        numpy: Returns a copy of the Results object with all tensors as numpy arrays.
-        cuda: Returns a copy of the Results object with all tensors on GPU memory.
-        to: Returns a copy of the Results object with tensors on a specified device and dtype.
-        new: Returns a new Results object with the same image, path, and names.
-        plot: Plots detection results on an input image, returning an annotated image.
-        show: Shows annotated results on screen.
-        save: Saves annotated results to file.
-        verbose: Returns a log string for each task, detailing detections and classifications.
-        save_txt: Saves detection results to a text file.
-        save_crop: Saves cropped detection images.
-        tojson: Converts detection results to JSON format.
-    
+    pred_imgs:          prediction visualization
+    pred_labels:        prediction labels (backgrounds are excluded)
+    pred_crop:          prediction bounding box crops
+    confusion_matrix:   grouping of result in CM
