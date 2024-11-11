@@ -103,12 +103,15 @@ All trainings \ testing \ prediction are managed in the **train_val_test_cfg.yam
         exist_ok : True             #If True, allows overwriting of an existing project/name directory
         box : 0.5                   # default: 7.5
         cls : 0.5                   # default: 0.5
-        scale : 0.2
-        fliplr : 0.0                #flip prob.
+        multi_scale : False         # (bool) Whether to use multiscale during training
+        device: 0                   # device used for training, device = 0,1
+        #Augmentation
+        translate : 0.1             #Default: 0.1 , valid: 0.0 - 1.0
+        scale : 0.2                 #Default: 0.5 , valid: >=0.0
+        flipud: 0.0                 #Default: 0.0 , valid: 0.0 - 1.0
+        fliplr : 0.1                #Default: 0.5 , valid: 0.0 - 1.0
         mosaic : 0                  # Combines four training images into one, simulating different scene compositions and object interactions
         close_mosaic : 0
-        multi_scale : False         # (bool) Whether to use multiscale during training
-        device : 0                  # Device for training device = 0,1
 
     test_cfg:
     chkpt: best.pt                #chkpt to load for testing

@@ -12,10 +12,9 @@ def format_labels(labels):
     return formatted
 
 def format_confusion_matrix(metrics, class_ids_names):
-
     detect_class_ids = metrics.box.ap_class_index
     summary = ''
-    header = ("Box", "P", "R", "mAP50", "mAP50-95")
+    header = ("Class", "P", "R", "mAP50", "mAP50-95")
     header_format = f"\n{header[0]:<20} : " + " ".join(f"{h:>8}" for h in header[1:]) + "\n"
     summary += header_format
     for i, class_id in enumerate(detect_class_ids):

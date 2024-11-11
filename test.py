@@ -19,6 +19,7 @@ CONFIG_YAML = "train_val_test_cfg.yaml"
 if __name__ == '__main__':
 
     cfg = yaml_load(CONFIG_YAML)
+    print(cfg)
     dataset_path = os.path.join(ROOT, 'datasets', cfg['dataset'])
     CLASS_IDS_NAMES = yaml_load(os.path.join(dataset_path, 'dataset.yaml'))['names']
     print(CLASS_IDS_NAMES)
@@ -26,31 +27,27 @@ if __name__ == '__main__':
     task = cfg['task'].lower()
     output_dir = os.path.join(ROOT, 'test_out', task , cfg['project'])
 
+    # Load a model
+    model_chktp_path = os.path.join(ROOT, 'train_out', task ,  cfg['project'], cfg['name'], "weights", cfg['test_cfg']['model_chkpt'])
+    model = YOLO(model_chktp_path)
+
+    print(f"[{os.path.basename(__file__)}]\tTesting chkpt path: {model_chktp_path}")
+    
+    metrics = model.val(
+        project = output_dir,
+        name = cfg['name'],
+        **cfg['test_cfg']['test_param']
+    )
+    validation_CM_summary = format_confusion_matrix(metrics, CLASS_IDS_NAMES)
     logging.basicConfig(
         filename= os.path.join(output_dir, cfg['name'], f"test_log.log"),
         level=logging.INFO,
         format=f'%(asctime)s - %(levelname)s - %(message)s',
         filemode= 'w'
     )
-
-    print(cfg)
-    logging.info(cfg)
-
-    # Load a model
-    model_chktp_path = os.path.join(ROOT, 'train_out', task ,  cfg['project'], cfg['name'], "weights", cfg['test_cfg']['model_chkpt'])
-    model = YOLO(model_chktp_path)
-
     
-
-    print(f"[{os.path.basename(__file__)}]\tTesting chkpt path: {model_chktp_path}")
+    logging.info(cfg)
     logging.info(f"[{os.path.basename(__file__)}]\tTesting chkpt path: {model_chktp_path}")
-    metrics = model.val(
-        project = output_dir,
-        name = cfg['name'],
-        **cfg['test_cfg']['test_param']
-    )
-
-    validation_CM_summary = format_confusion_matrix(metrics, CLASS_IDS_NAMES)
     logging.info(validation_CM_summary)
 
     #Data path
