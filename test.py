@@ -22,7 +22,7 @@ if __name__ == '__main__':
     dataset_path = os.path.join(ROOT, 'datasets', cfg['dataset'])
     CLASS_IDS_NAMES = yaml_load(os.path.join(dataset_path, 'dataset.yaml'))['names']
     print(CLASS_IDS_NAMES)
-    
+
     task = cfg['task'].lower()
     output_dir = os.path.join(ROOT, 'test_out', task , cfg['project'])
 
@@ -39,9 +39,8 @@ if __name__ == '__main__':
     # Load a model
     model_chktp_path = os.path.join(ROOT, 'train_out', task ,  cfg['project'], cfg['name'], "weights", cfg['test_cfg']['model_chkpt'])
     model = YOLO(model_chktp_path)
-    if not os.path.exists(os.path.join(output_dir, cfg['name'])):
-        os.makedirs(os.path.join(output_dir, cfg['name']))
-    shutil.copy2(CONFIG_YAML, os.path.join(output_dir, cfg['name']))
+
+    
 
     print(f"[{os.path.basename(__file__)}]\tTesting chkpt path: {model_chktp_path}")
     logging.info(f"[{os.path.basename(__file__)}]\tTesting chkpt path: {model_chktp_path}")
@@ -167,7 +166,9 @@ if __name__ == '__main__':
 
     print(f"[{os.path.basename(__file__)}]\tVis result for dataset: '{data_path} saved in {out_dir}'")
     logging.info(f"[{os.path.basename(__file__)}]\tVis result for dataset: '{data_path} saved in {out_dir}'")
-    
+    print(f"[{os.path.basename(__file__)}]\tCfg file archived to: '{os.path.join(output_dir, cfg['name'])}'")
+    logging.info(f"[{os.path.basename(__file__)}]\tCfg file archived to: '{os.path.join(output_dir, cfg['name'])}'")
+    shutil.copy2(CONFIG_YAML, os.path.join(output_dir, cfg['name']))
 
 
 

@@ -22,9 +22,7 @@ if __name__ == '__main__':
     output_dir = os.path.join(ROOT, 'infer_out', task , cfg['project'])
     dataset_path = os.path.join(ROOT, 'datasets', cfg['dataset'])
 
-    if not os.path.exists(os.path.join(output_dir, cfg['name'])):
-        os.makedirs(os.path.join(output_dir, cfg['name']))
-    shutil.copy2(CONFIG_YAML, os.path.join(output_dir, cfg['name']))
+    
 
     #Data path
     if task == 'detect':
@@ -146,5 +144,6 @@ if __name__ == '__main__':
                     print(e)
 
     print(f"[{os.path.basename(__file__)}]\tVis result for dataset: '{dataset_path} saved in {out_dir}'")
-
+    print(f"[{os.path.basename(__file__)}]\tCfg file archived to: '{os.path.join(output_dir, cfg['name'])}'")
+    shutil.copy2(CONFIG_YAML, os.path.join(output_dir, cfg['name']))
 

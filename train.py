@@ -2,7 +2,6 @@ import os
 from ultralytics.utils import yaml_load
 from ultralytics import YOLO
 import shutil
-
 ROOT = os.path.dirname(os.path.abspath(__file__))
 CONFIG_YAML = "train_val_test_cfg.yaml"
 
@@ -20,9 +19,7 @@ if __name__ == '__main__':
     
     output_dir = os.path.join(ROOT,'train_out', task ,cfg['project'])
     
-    if not os.path.exists(os.path.join(output_dir, cfg['name'])):
-        os.makedirs(os.path.join(output_dir, cfg['name']))
-    shutil.copy2(CONFIG_YAML, os.path.join(output_dir, cfg['name']))
+    
 
     if resume_chkpt:= cfg['train_cfg']['resume_chkpt']:
         chkpt = os.path.join(output_dir, cfg['name'] , "weights", resume_chkpt)
@@ -41,3 +38,5 @@ if __name__ == '__main__':
 
         results = model.train(data = dataset_path, project = output_dir, name = cfg['name'], **cfg['train_cfg']['train_param'])
         print(f"[{os.path.basename(__file__)}]\tCompleted training at {output_dir}")
+        
+    shutil.copy2(CONFIG_YAML, os.path.join(output_dir, cfg['name']))
