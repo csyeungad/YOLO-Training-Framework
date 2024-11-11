@@ -19,7 +19,6 @@ def get_CM_grouping(pred_lbl_dir, gt_lbl_dir):
     TN = [ pred_file for pred_file in pred_lbls_dict.keys() if pred_file in gt_lbls_dict.keys() and len(gt_lbls_dict[pred_file]) > 0] # pred in real defect data
     FP = [ gt_file for gt_file in gt_lbls_dict.keys() if len(gt_lbls_dict[gt_file]) > 0 and gt_file not in pred_lbls_dict.keys()] #real defect data not in pred
     FN = [ pred_file for pred_file in pred_lbls_dict.keys() if pred_file in gt_lbls_dict.keys() and len(gt_lbls_dict[pred_file]) == 0] # pred in real pass data
-    print(f"Confusion Matrix:")
-    print(f"TP:\t{len(TP)}\tTN:\t{len(TN)}\tFP:\t{len(FP)}\tFN:\t{len(FN)}\n")
+
     return TN, FN, FP, TP
 

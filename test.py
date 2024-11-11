@@ -4,10 +4,12 @@ import cv2
 import csv
 from tqdm import tqdm
 import shutil
-from utils.format import round_speeds, format_labels
+from utils.format import round_speeds, format_labels, format_confusion_matrix
 from utils.dataset import load_classify_img_paths, load_detect_img_paths
 from utils.analysis import get_CM_grouping
 from ultralytics.utils import yaml_load
+import logging
+
 ROOT = os.path.dirname(os.path.abspath(__file__))
 
 DETECT_RESULT_HEADER = ['img_path', 'preprocess', 'inference', 'post process', 'x_min', 'y_min', 'x_max', 'y_max', 'conf', 'class_id']
@@ -17,9 +19,22 @@ CONFIG_YAML = "train_val_test_cfg.yaml"
 if __name__ == '__main__':
 
     cfg = yaml_load(CONFIG_YAML)
-    print(cfg)
+    dataset_path = os.path.join(ROOT, 'datasets', cfg['dataset'])
+    CLASS_IDS_NAMES = yaml_load(os.path.join(dataset_path, 'dataset.yaml'))['names']
+    print(CLASS_IDS_NAMES)
+    
     task = cfg['task'].lower()
     output_dir = os.path.join(ROOT, 'test_out', task , cfg['project'])
+
+    logging.basicConfig(
+        filename= os.path.join(output_dir, cfg['name'], f"test_log.log"),
+        level=logging.INFO,
+        format=f'%(asctime)s - %(levelname)s - %(message)s',
+        filemode= 'w'
+    )
+
+    print(cfg)
+    logging.info(cfg)
 
     # Load a model
     model_chktp_path = os.path.join(ROOT, 'train_out', task ,  cfg['project'], cfg['name'], "weights", cfg['test_cfg']['model_chkpt'])
@@ -29,14 +44,17 @@ if __name__ == '__main__':
     shutil.copy2(CONFIG_YAML, os.path.join(output_dir, cfg['name']))
 
     print(f"[{os.path.basename(__file__)}]\tTesting chkpt path: {model_chktp_path}")
+    logging.info(f"[{os.path.basename(__file__)}]\tTesting chkpt path: {model_chktp_path}")
     metrics = model.val(
         project = output_dir,
         name = cfg['name'],
         **cfg['test_cfg']['test_param']
     )
 
+    validation_CM_summary = format_confusion_matrix(metrics, CLASS_IDS_NAMES)
+    logging.info(validation_CM_summary)
+
     #Data path
-    dataset_path = os.path.join(ROOT, 'datasets', cfg['dataset'])
     if task == 'detect':
         data_path = os.path.join(dataset_path, 'images', cfg['test_cfg']['test_param']['split'])
         img_paths = load_detect_img_paths(data_path)
@@ -51,6 +69,7 @@ if __name__ == '__main__':
         img_ext = os.path.splitext(img_paths[0])[1]
 
     print(f"[{os.path.basename(__file__)}]\tPrediction on data_path: {data_path}")
+    logging.info(f"[{os.path.basename(__file__)}]\tPrediction on data_path: {data_path}")
     if task == 'detect':
         out_dir = os.path.join(output_dir, cfg['name'])
         out_dir_img = os.path.join(out_dir, 'pred_imgs')
@@ -94,7 +113,10 @@ if __name__ == '__main__':
         
         if cfg['test_cfg']['CM_grouping_vis']:
             print(f"[{os.path.basename(__file__)}]\tProceed to perform confusion matrix grouping...")
+            logging.info(f"[{os.path.basename(__file__)}]\tProceed to perform confusion matrix grouping...")
             TN, FN, FP, TP = get_CM_grouping(out_dir_lbls, anno_path)
+            print(f"Confusion Matrix:\nTP:\t{len(TP)}\tTN:\t{len(TN)}\tFP:\t{len(FP)}\tFN:\t{len(FN)}\n")
+            logging.info(f"Confusion Matrix:\nTP:\t{len(TP)}\tTN:\t{len(TN)}\tFP:\t{len(FP)}\tFN:\t{len(FN)}\n")
 
             cm = {'TP': TP, 'FP': FP, 'FN': FN, 'TN': TN}
             base_out_dir = os.path.join(out_dir, 'confusion_matrix')
@@ -120,6 +142,7 @@ if __name__ == '__main__':
             writer.writerow(CLASSIFY_RESULT_HEADER)
 
             print(f"[{os.path.basename(__file__)}]\tProceed to perform prediction:")
+            logging.info(f"[{os.path.basename(__file__)}]\tProceed to perform prediction:")
             for img_path in tqdm(img_paths):
                 try:
                     prediction_summary = []
@@ -143,6 +166,7 @@ if __name__ == '__main__':
                     print(e)
 
     print(f"[{os.path.basename(__file__)}]\tVis result for dataset: '{data_path} saved in {out_dir}'")
+    logging.info(f"[{os.path.basename(__file__)}]\tVis result for dataset: '{data_path} saved in {out_dir}'")
     
 
 
