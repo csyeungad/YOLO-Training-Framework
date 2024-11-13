@@ -8,6 +8,7 @@ from utils.format import round_speeds, format_labels
 from utils.dataset import load_classify_img_paths, load_detect_img_paths
 from utils.analysis import get_CM_grouping
 from ultralytics.utils import yaml_load
+import logging
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 DETECT_RESULT_HEADER = ['img_path', 'preprocess', 'inference', 'post process', 'x_min', 'y_min', 'x_max', 'y_max', 'conf', 'class_id']
@@ -17,19 +18,19 @@ CONFIG_YAML = "infer_cfg.yaml"
 if __name__ == '__main__':
 
     cfg = yaml_load(CONFIG_YAML)
-    print(cfg)
+    (f"[{os.path.basename(__file__)}]\tCfg: {cfg}")
     task = cfg['task'].lower()
     output_dir = os.path.join(ROOT, 'infer_out', task , cfg['project'])
     dataset_path = os.path.join(ROOT, 'datasets', cfg['dataset'])
-
-    
 
     #Data path
     if task == 'detect':
         data_path = os.path.join(dataset_path, 'images')
         if not os.path.isdir(data_path):
-            raise FileNotFoundError('Please ensure a correct dataset structure')
+            raise FileNotFoundError('Please ensure a correct dataset structure for inference')
         img_paths = load_detect_img_paths(data_path)
+        if not img_paths:
+            raise FileNotFoundError('Please ensure a correct dataset structure for inference')
         img_ext = os.path.splitext(img_paths[0])[1]
 
         #Anno path
@@ -47,10 +48,22 @@ if __name__ == '__main__':
     #chkpt path
     model_chktp_path = cfg['infer_cfg']['model_chkpt']
     model = YOLO(model_chktp_path)
+    if not os.path.isdir(os.path.join(output_dir, cfg['name'])):
+        os.makedirs(os.path.join(output_dir, cfg['name']))
+
+    logging.basicConfig(
+        filename= os.path.join(output_dir, cfg['name'], f"infer_log.log"),
+        level=logging.INFO,
+        format=f'%(asctime)s - %(levelname)s - %(message)s',
+        filemode= 'w'
+    )
 
     print(f"[{os.path.basename(__file__)}]\tInference chkpt path: {model_chktp_path}")
     print(f"[{os.path.basename(__file__)}]\tInference data path: {dataset_path}")
     print(f"[{os.path.basename(__file__)}]\tGround-Truth anno path: {anno_path}")
+    logging.info(f"[{os.path.basename(__file__)}]\tInference chkpt path: {model_chktp_path}")
+    logging.info(f"[{os.path.basename(__file__)}]\tInference data path: {dataset_path}")
+    logging.info(f"[{os.path.basename(__file__)}]\tGround-Truth anno path: {anno_path}")
 
     if task == 'detect':
         out_dir = os.path.join(output_dir, cfg['name'])
@@ -61,6 +74,9 @@ if __name__ == '__main__':
         os.makedirs(out_dir_img, exist_ok=True)
         os.makedirs(out_dir_lbls, exist_ok=True)
         os.makedirs(out_dir_crop, exist_ok=True)
+
+        print(f"Inference parameters:{cfg['infer_cfg']['infer_param']}")
+        logging.info(f"Inference parameters:{cfg['infer_cfg']['infer_param']}")
 
         infer_summary = os.path.join(out_dir, 'prediction_summary.csv')
         with open(infer_summary, 'w', encoding= 'utf-8', newline = '\n') as f:
@@ -94,11 +110,14 @@ if __name__ == '__main__':
 
         if cfg['infer_cfg']['CM_grouping_vis'] and anno_files:
             print(f"[{os.path.basename(__file__)}]\tProceed to perform confusion matrix grouping...")
+            logging.info(f"[{os.path.basename(__file__)}]\tProceed to perform confusion matrix grouping...")
             TN, FN, FP, TP = get_CM_grouping(out_dir_lbls, anno_path)
 
             cm = {'TP': TP, 'FP': FP, 'FN': FN, 'TN': TN}
             base_out_dir = os.path.join(out_dir, 'confusion_matrix')
-
+            print(f"\nConfusion Matrix:\nTP:\t{len(TP)}\tTN:\t{len(TN)}\tFP:\t{len(FP)}\tFN:\t{len(FN)}\n")
+            logging.info(f"\nConfusion Matrix:\nTP:\t{len(TP)}\tTN:\t{len(TN)}\tFP:\t{len(FP)}\tFN:\t{len(FN)}\n")
+            
             # Create directories and copy files
             for label, images in cm.items():
                 out_dir_label = os.path.join(base_out_dir, label)
@@ -145,5 +164,7 @@ if __name__ == '__main__':
 
     print(f"[{os.path.basename(__file__)}]\tVis result for dataset: '{dataset_path} saved in {out_dir}'")
     print(f"[{os.path.basename(__file__)}]\tCfg file archived to: '{os.path.join(output_dir, cfg['name'])}'")
+    logging.info(f"[{os.path.basename(__file__)}]\tVis result for dataset: '{dataset_path} saved in {out_dir}'")
+    logging.info(f"[{os.path.basename(__file__)}]\tCfg file archived to: '{os.path.join(output_dir, cfg['name'])}'")
     shutil.copy2(CONFIG_YAML, os.path.join(output_dir, cfg['name']))
 

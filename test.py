@@ -19,10 +19,8 @@ CONFIG_YAML = "train_val_test_cfg.yaml"
 if __name__ == '__main__':
 
     cfg = yaml_load(CONFIG_YAML)
-    print(cfg)
+    print(f"[{os.path.basename(__file__)}]\tCfg: {cfg}")
     dataset_path = os.path.join(ROOT, 'datasets', cfg['dataset'])
-    CLASS_IDS_NAMES = yaml_load(os.path.join(dataset_path, 'dataset.yaml'))['names']
-    print(CLASS_IDS_NAMES)
 
     task = cfg['task'].lower()
     output_dir = os.path.join(ROOT, 'test_out', task , cfg['project'])
@@ -38,17 +36,17 @@ if __name__ == '__main__':
         name = cfg['name'],
         **cfg['test_cfg']['test_param']
     )
-    validation_CM_summary = format_confusion_matrix(metrics, CLASS_IDS_NAMES)
+    validation_CM_summary = format_confusion_matrix(metrics)
     logging.basicConfig(
         filename= os.path.join(output_dir, cfg['name'], f"test_log.log"),
         level=logging.INFO,
         format=f'%(asctime)s - %(levelname)s - %(message)s',
         filemode= 'w'
     )
-    
-    logging.info(cfg)
+    logging.info(f"[{os.path.basename(__file__)}]\tCfg: {cfg}")
     logging.info(f"[{os.path.basename(__file__)}]\tTesting chkpt path: {model_chktp_path}")
     logging.info(validation_CM_summary)
+    logging.info(f"speed: {metrics.speed}")
 
     #Data path
     if task == 'detect':
@@ -75,6 +73,9 @@ if __name__ == '__main__':
         os.makedirs(out_dir_img, exist_ok=True)
         os.makedirs(out_dir_lbls, exist_ok=True)
         os.makedirs(out_dir_crop, exist_ok=True)
+
+        print(f"Testing parameters:{cfg['test_cfg']['test_param']}")
+        logging.info(f"Testing parameters:{cfg['test_cfg']['test_param']}")
 
         test_summary = os.path.join(out_dir, 'prediction_summary.csv')
         with open(test_summary, 'w', encoding= 'utf-8', newline = '\n') as f:
@@ -110,9 +111,11 @@ if __name__ == '__main__':
         if cfg['test_cfg']['CM_grouping_vis']:
             print(f"[{os.path.basename(__file__)}]\tProceed to perform confusion matrix grouping...")
             logging.info(f"[{os.path.basename(__file__)}]\tProceed to perform confusion matrix grouping...")
+
             TN, FN, FP, TP = get_CM_grouping(out_dir_lbls, anno_path)
-            print(f"Confusion Matrix:\nTP:\t{len(TP)}\tTN:\t{len(TN)}\tFP:\t{len(FP)}\tFN:\t{len(FN)}\n")
-            logging.info(f"Confusion Matrix:\nTP:\t{len(TP)}\tTN:\t{len(TN)}\tFP:\t{len(FP)}\tFN:\t{len(FN)}\n")
+
+            print(f"\nConfusion Matrix:\nTP:\t{len(TP)}\tTN:\t{len(TN)}\tFP:\t{len(FP)}\tFN:\t{len(FN)}\n")
+            logging.info(f"\nConfusion Matrix:\nTP:\t{len(TP)}\tTN:\t{len(TN)}\tFP:\t{len(FP)}\tFN:\t{len(FN)}\n")
 
             cm = {'TP': TP, 'FP': FP, 'FN': FN, 'TN': TN}
             base_out_dir = os.path.join(out_dir, 'confusion_matrix')

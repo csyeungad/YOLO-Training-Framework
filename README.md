@@ -88,30 +88,37 @@ All trainings \ testing \ prediction are managed in the **train_val_test_cfg.yam
     pretrain_chkpt: D:/YOLO/train_out/classify/imagenet10/imagenet/weights/best.pt #abs path to pretrain chkpt or null to train from scratch
     model_cfg_yaml: yolo11n-cls.yaml #model configuration to train from scratch
     train_param:
-        epochs: 10                  # Number of epochs to train for.
-        imgsz: 640                  # Size of input images as integer, imgze : a -> resize longest size to a, while keeping aspect ratio, imgze : (w, h) -> resize img into square
-        rect : False                # True: Pad img after resize to square, False: keep original aspect ratio
-        batch: 5                    # Specific batch size: batch=16 / Auto mode for % GPU memory utilization (batch= 0.70)
-        patience : 20
-        lr0 : 0.01
-        workers : 1 
-        single_cls : False          # (bool) train multi-class data as single-class
-        optimizer: auto             # Optimizer to use, choices:[SGD, Adam, Adamax, AdamW, NAdam, RAdam, RMSProp, auto]
-        save_period : 25            #interval for chkpts save
-        plots : True                #save plots and images during train/val
-        fraction : 1.0              #train with subset of dataset, 1.0 for full dataset
-        exist_ok : True             #If True, allows overwriting of an existing project/name directory
-        box : 0.5                   # default: 7.5
-        cls : 0.5                   # default: 0.5
-        multi_scale : False         # (bool) Whether to use multiscale during training
-        device: 0                   # device used for training, device = 0,1
-        #Augmentation
-        translate : 0.1             #Default: 0.1 , valid: 0.0 - 1.0
-        scale : 0.2                 #Default: 0.5 , valid: >=0.0
-        flipud: 0.0                 #Default: 0.0 , valid: 0.0 - 1.0
-        fliplr : 0.1                #Default: 0.5 , valid: 0.0 - 1.0
-        mosaic : 0                  # Combines four training images into one, simulating different scene compositions and object interactions
-        close_mosaic : 0
+    #Trainer
+    epochs: 3                 # Number of epochs to train for.
+    batch: 0.8                   # Specific batch size: batch=16 / Auto mode for % GPU memory utilization (batch= 0.70)
+    patience : 20               # Number of epochs to wait without improvement in validation metrics before early stopping the training
+    workers : 1
+    device: 0,1                 # device used for training, device = 0,1
+    exist_ok : True             # If True, allows overwriting of an existing project/name directory 
+    save_period : 20            # Interval for chkpts save
+    plots : True                # Save plots and images during train/val
+    #Dataset
+    imgsz: 640                  # Size of input images as integer, imgze : a -> resize longest size to a, while keeping aspect ratio, imgze : (w, h) -> resize img into square
+    rect : False                # True: Pad img after resize to square, False: keep original aspect ratio
+    fraction : 0.3              # Train with subset of dataset, 1.0 for full dataset
+    single_cls : False          # (bool) train multi-class data as single-class    
+    #Optimizer
+    optimizer: auto             # Optimizer to use, choices:[SGD, Adam, Adamax, AdamW, NAdam, RAdam, RMSProp, auto]
+    lr0: 0.01                   # Initial learning rate
+    lrf: 0.01                   # Final learning rate as a fraction of the initial rate = (lr0 * lrf)
+    momentum: 0.937             # Momentum factor for SGD or beta1 for Adam optimizers, influencing the incorporation of past gradients in the current update
+    weight_decay: 0.0005        # L2 regularization term, penalizing large weights to prevent overfitting.
+    #Loss function
+    box : 0.1                   # default: 7.5
+    cls : 0.5                   # default: 0.5
+    multi_scale : False         # (bool) Whether to use multiscale during training
+    #Augmentation
+    translate : 0.1             # Default: 0.1 , valid: 0.0 - 1.0
+    scale : 0.2                 # Default: 0.5 , valid: >=0.0
+    flipud: 0.0                 # Default: 0.0 , valid: 0.0 - 1.0
+    fliplr : 0.1                # Default: 0.5 , valid: 0.0 - 1.0
+    mosaic : 0                  # Combines four training images into one, simulating different scene compositions and object interactions
+    close_mosaic : 0
 
     test_cfg:
     chkpt: best.pt                #chkpt to load for testing
