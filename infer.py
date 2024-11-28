@@ -6,7 +6,7 @@ from tqdm import tqdm
 import shutil
 from utils.format import round_speeds, format_labels
 from utils.dataset import load_classify_img_paths, load_detect_img_paths
-from utils.analysis import get_CM_grouping
+from utils.analysis import get_CM_grouping, get_top_cls_distribution, compute_metrics
 from ultralytics.utils import yaml_load
 import logging
 
@@ -108,25 +108,48 @@ if __name__ == '__main__':
                 except Exception as e:
                     print(e)
 
+        logging.info(f"defect class id name:\n{model.names}")
+        top_cls_dist = get_top_cls_distribution(infer_summary, model.names)
+        top_cls_dist_log = (f"Prediction top_cls_distribution:\n{top_cls_dist}")
+        print(top_cls_dist_log)
+        logging.info(top_cls_dist_log)
+        
+
         if cfg['infer_cfg']['CM_grouping_vis'] and anno_files:
             print(f"[{os.path.basename(__file__)}]\tProceed to perform confusion matrix grouping...")
             logging.info(f"[{os.path.basename(__file__)}]\tProceed to perform confusion matrix grouping...")
             TN, FN, FP, TP = get_CM_grouping(out_dir_lbls, anno_path)
+            accuracy, precision, recall, f1_score = compute_metrics(len(TP), len(TN), len(FP), len(FN))
+            total_img_num = len(img_paths)
+
+            tn_percent = round(len(TN) / total_img_num * 100, 3)
+            fn_percent = round(len(FN) / total_img_num * 100, 3)
+            fp_percent = round(len(FP) / total_img_num * 100, 3)
+            tp_percent = round(len(TP) / total_img_num * 100, 3)
+
+            CM_log  = (f"\nConfusion Matrix:\nTP: {len(TP)} ({tp_percent}%)\tTN: {len(TN)} ({tn_percent}%)\tFP: {len(FP)} ({fp_percent}%)\tFN: {len(FN)} ({fn_percent}%)")
+            metrics_log = (f"\nAccuracy:\t{accuracy:.3f}\tPrecision:\t{precision:.3f}\tRecall:\t{recall:.3f}\tF1 Score:\t{f1_score:.3f}\n")
+            
+            print(CM_log)
+            print(metrics_log)
+            logging.info(CM_log)
+            logging.info(metrics_log)
 
             cm = {'TP': TP, 'FP': FP, 'FN': FN, 'TN': TN}
             base_out_dir = os.path.join(out_dir, 'confusion_matrix')
-            print(f"\nConfusion Matrix:\nTP:\t{len(TP)}\tTN:\t{len(TN)}\tFP:\t{len(FP)}\tFN:\t{len(FN)}\n")
-            logging.info(f"\nConfusion Matrix:\nTP:\t{len(TP)}\tTN:\t{len(TN)}\tFP:\t{len(FP)}\tFN:\t{len(FN)}\n")
-            
+
             # Create directories and copy files
             for label, images in cm.items():
-                out_dir_label = os.path.join(base_out_dir, label)
-                os.makedirs(out_dir_label, exist_ok=True)
-
-                for img in images:
-                    src_path = os.path.join(out_dir_img, f"{img}{img_ext}")
-                    dest_path = os.path.join(out_dir_label, f"{img}{img_ext}")
-                    shutil.copy2(src_path, dest_path)
+                    if label in ["FP", "FN"]:
+                        out_dir_label = os.path.join(base_out_dir, label)
+                        os.makedirs(out_dir_label, exist_ok=True)
+                        for img in images:
+                            try:
+                                src_path = os.path.join(out_dir_img, f"{img}{img_ext}")
+                                dest_path = os.path.join(out_dir_label, f"{img}{img_ext}")
+                                shutil.copy2(src_path, dest_path)
+                            except Exception as e:
+                                print(e)
 
     if task == 'classify':
         out_dir = os.path.join(output_dir, cfg['name'])

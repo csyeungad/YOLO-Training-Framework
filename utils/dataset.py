@@ -9,7 +9,8 @@ def load_lbls(anno_dir) -> dict:
 
     Returns:
         dict: 
-            anno_path : lbls [[id, xc,yc,wn,hn],...]
+            anno_path (w/o ext) : [[id, xc,yc,wn,hn],...]
+        e.g. path/img_1 : [[id, xc,yc,wn,hn],...]
     """
     lbls = {}
     for file in os.listdir(anno_dir):

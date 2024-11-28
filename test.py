@@ -11,7 +11,6 @@ from ultralytics.utils import yaml_load
 import logging
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
-
 DETECT_RESULT_HEADER = ['img_path', 'preprocess', 'inference', 'post process', 'x_min', 'y_min', 'x_max', 'y_max', 'conf', 'class_id']
 CLASSIFY_RESULT_HEADER = ['img_path', 'preprocess', 'inference', 'post process', 'top1', 'top1conf', 'top3', 'top3conf']
 CONFIG_YAML = "train_val_test_cfg.yaml"
@@ -21,7 +20,7 @@ if __name__ == '__main__':
     cfg = yaml_load(CONFIG_YAML)
     print(f"[{os.path.basename(__file__)}]\tCfg: {cfg}")
     dataset_path = os.path.join(ROOT, 'datasets', cfg['dataset'])
-
+    dataset_split = cfg['test_cfg']['test_param']['split']
     task = cfg['task'].lower()
     output_dir = os.path.join(ROOT, 'test_out', task , cfg['project'])
 
@@ -50,15 +49,15 @@ if __name__ == '__main__':
 
     #Data path
     if task == 'detect':
-        data_path = os.path.join(dataset_path, 'images', cfg['test_cfg']['test_param']['split'])
+        data_path = os.path.join(dataset_path, 'images',dataset_split)
         img_paths = load_detect_img_paths(data_path)
-        img_ext = os.path.splitext(img_paths[0])[1]
+        img_ext = os.path.splitext(img_paths[0])[1] # e.g. .jpg / .bmp 
         #Anno path
         anno_path = data_path.replace("images", "labels")
         anno_files = [file for file in os.listdir(anno_path) if file.endswith('.txt')]
     
     if task == 'classify':
-        data_path = os.path.join(dataset_path,  cfg['test_cfg']['test_param']['split'])
+        data_path = os.path.join(dataset_path, dataset_split)
         img_paths = load_classify_img_paths(data_path)
         img_ext = os.path.splitext(img_paths[0])[1]
 
@@ -113,9 +112,15 @@ if __name__ == '__main__':
             logging.info(f"[{os.path.basename(__file__)}]\tProceed to perform confusion matrix grouping...")
 
             TN, FN, FP, TP = get_CM_grouping(out_dir_lbls, anno_path)
+            total_img_num = len(img_paths)
 
-            print(f"\nConfusion Matrix:\nTP:\t{len(TP)}\tTN:\t{len(TN)}\tFP:\t{len(FP)}\tFN:\t{len(FN)}\n")
-            logging.info(f"\nConfusion Matrix:\nTP:\t{len(TP)}\tTN:\t{len(TN)}\tFP:\t{len(FP)}\tFN:\t{len(FN)}\n")
+            tn_percent = round(len(TN) / total_img_num * 100, 3)
+            fn_percent = round(len(FN) / total_img_num * 100, 3)
+            fp_percent = round(len(FP) / total_img_num * 100, 3)
+            tp_percent = round(len(TP) / total_img_num * 100, 3)
+
+            print(f"\nConfusion Matrix:\nTP: {len(TP)} ({tp_percent}%)\tTN: {len(TN)} ({tn_percent}%)\tFP: {len(FP)} ({fp_percent}%)\tFN: {len(FN)} ({fn_percent}%)\n")
+            logging.info(f"\nConfusion Matrix:\nTP: {len(TP)} ({tp_percent}%)\tTN: {len(TN)} ({tn_percent}%)\tFP: {len(FP)} ({fp_percent}%)\tFN: {len(FN)} ({fn_percent}%)\n")
 
             cm = {'TP': TP, 'FP': FP, 'FN': FN, 'TN': TN}
             base_out_dir = os.path.join(out_dir, 'confusion_matrix')
@@ -125,9 +130,17 @@ if __name__ == '__main__':
                 os.makedirs(out_dir_label, exist_ok=True)
 
                 for img in images:
-                    src_path = os.path.join(out_dir_img, f"{img}{img_ext}")
-                    dest_path = os.path.join(out_dir_label, f"{img}{img_ext}")
-                    shutil.copy2(src_path, dest_path)
+                    try:
+                        #Grouping prediction results to CM folders
+                        pred_src_path = os.path.join(out_dir_img, f"{img}{img_ext}")
+                        pred_dest_path = os.path.join(out_dir_label, f"{img}{img_ext}")
+                        shutil.copy2(pred_src_path, pred_dest_path)
+                        #Grouping GT results to CM folders
+                        gt_src_path = os.path.join(dataset_path, 'vis', dataset_split ,f"{img}{img_ext}")
+                        gt_dest_path = os.path.join(out_dir_label, f"{img}_GT{img_ext}")
+                        shutil.copy2(gt_src_path, gt_dest_path)
+                    except Exception as e:
+                        print(e)
 
     if task == 'classify':
         out_dir = os.path.join(output_dir, cfg['name'])
