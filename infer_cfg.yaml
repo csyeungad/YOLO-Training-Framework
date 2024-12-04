@@ -14,5 +14,6 @@ infer_cfg:
     save : False
     verbose : False
     exist_ok : True
-    save_txt : False
     show : False
+  save_crop: False
+

@@ -157,6 +157,7 @@ For performing inference on dataset with or without ground truth label. Adjust t
         exist_ok : True
         save_txt : False
         show : False
+    save_crop: False
 
 ### Model deployment Configuration 
 To deploy a chkpt into a specific format. 

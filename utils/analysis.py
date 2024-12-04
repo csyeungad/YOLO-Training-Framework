@@ -34,7 +34,7 @@ def get_top_cls_distribution(prediction_file, class_id_name: dict):
     """Compute top class distribution from a prediction summary CSV.
     
     Args:
-    prediction_file: the file path of "prediction_summary.csv"
+    prediction_file: the file path of "prediction_results.csv"
     class_id_name: {0: cls_1, 1: cls_2, 2: cls_3,...}
     """
     if os.path.exists(prediction_file):
@@ -64,6 +64,6 @@ def get_top_cls_distribution(prediction_file, class_id_name: dict):
 if __name__ == "__main__":
 
     top_cls_dist = get_top_cls_distribution(
-        prediction_file=r"X:\infer_out\detect\project\name_1\prediction_summary.csv",
+        prediction_file=r"X:\infer_out\detect\project\name_1\prediction_results.csv",
         class_id_name= {0: 'cls_1', 1: 'cls_2'})
     print(top_cls_dist)

@@ -78,7 +78,7 @@ if __name__ == '__main__':
         print(f"Inference parameters:{cfg['infer_cfg']['infer_param']}")
         logging.info(f"Inference parameters:{cfg['infer_cfg']['infer_param']}")
 
-        infer_summary = os.path.join(out_dir, 'prediction_summary.csv')
+        infer_summary = os.path.join(out_dir, 'prediction_results.csv')
         with open(infer_summary, 'w', encoding= 'utf-8', newline = '\n') as f:
             writer = csv.writer(f)
             writer.writerow(DETECT_RESULT_HEADER)
@@ -87,7 +87,7 @@ if __name__ == '__main__':
             
             for img_path in tqdm(img_paths):
                 try:
-                    prediction_summary = []
+                    prediction_results = []
                     img = os.path.basename(img_path)
                     save_path_img = os.path.join(out_dir_img, img)
                     save_path_lbl = os.path.join(out_dir_lbls, img.replace(".jpg", '.txt'))
@@ -96,21 +96,24 @@ if __name__ == '__main__':
                         **cfg['infer_cfg']['infer_param']
                     )
 
-                    prediction_summary = [results[0].path]
-                    prediction_summary.extend(round_speeds(results[0].speed.values()))
-                    prediction_summary.extend(format_labels(results[0].boxes.data.tolist()))
-                    writer.writerow(prediction_summary)
+                    prediction_results = [results[0].path]
+                    prediction_results.extend(round_speeds(results[0].speed.values()))
+                    prediction_results.extend(format_labels(results[0].boxes.data.tolist()))
+                    writer.writerow(prediction_results)
 
                     annotated_image = results[0].plot()
                     results[0].save_txt(save_path_lbl)
-                    results[0].save_crop(save_dir=out_dir_crop, file_name=img)
+                    if cfg['infer_cfg']['save_crop']:
+                        results[0].save_crop(save_dir=out_dir_crop, file_name=img)
                     results[0].save(save_path_img)
                 except Exception as e:
                     print(e)
 
         logging.info(f"defect class id name:\n{model.names}")
         top_cls_dist = get_top_cls_distribution(infer_summary, model.names)
-        top_cls_dist_log = (f"Prediction top_cls_distribution:\n{top_cls_dist}")
+        top_cls_dist_log = (f"\nPrediction top_cls_distribution:\n")
+        for cls, count in top_cls_dist.items():
+            top_cls_dist_log += f"{cls}:{count}\n"
         print(top_cls_dist_log)
         logging.info(top_cls_dist_log)
         
@@ -157,7 +160,7 @@ if __name__ == '__main__':
         os.makedirs(out_dir, exist_ok=True)
         os.makedirs(out_dir_img, exist_ok=True)
 
-        test_summary = os.path.join(out_dir, 'prediction_summary.csv')
+        test_summary = os.path.join(out_dir, 'prediction_results.csv')
         with open(test_summary, 'w', encoding= 'utf-8', newline = '\n') as f:
             writer = csv.writer(f)
             writer.writerow(CLASSIFY_RESULT_HEADER)
@@ -165,7 +168,7 @@ if __name__ == '__main__':
             print(f"[{os.path.basename(__file__)}]\tProceed to perform prediction:")
             for img_path in tqdm(img_paths):
                 try:
-                    prediction_summary = []
+                    prediction_results = []
                     img = os.path.basename(img_path)
                     save_path_img = os.path.join(out_dir_img, img)
                     results = model.predict(
@@ -173,13 +176,13 @@ if __name__ == '__main__':
                         **cfg['infer_cfg']['infer_param']
                     )
                     #print(results[0].probs)
-                    prediction_summary = [results[0].path]
-                    prediction_summary.extend(round_speeds(results[0].speed.values()))
-                    prediction_summary.append(results[0].probs.top1)
-                    prediction_summary.append(results[0].probs.top1conf.tolist())
-                    prediction_summary.extend(results[0].probs.top5[:3])
-                    prediction_summary.extend(results[0].probs.top5conf.tolist()[:3])
-                    writer.writerow(prediction_summary)
+                    prediction_results = [results[0].path]
+                    prediction_results.extend(round_speeds(results[0].speed.values()))
+                    prediction_results.append(results[0].probs.top1)
+                    prediction_results.append(results[0].probs.top1conf.tolist())
+                    prediction_results.extend(results[0].probs.top5[:3])
+                    prediction_results.extend(results[0].probs.top5conf.tolist()[:3])
+                    writer.writerow(prediction_results)
     
                     results[0].save(save_path_img)
                 except Exception as e:
