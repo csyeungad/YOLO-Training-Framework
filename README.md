@@ -109,8 +109,9 @@ All trainings \ testing \ prediction are managed in the **train_val_test_cfg.yam
     momentum: 0.937             # Momentum factor for SGD or beta1 for Adam optimizers, influencing the incorporation of past gradients in the current update
     weight_decay: 0.0005        # L2 regularization term, penalizing large weights to prevent overfitting.
     #Loss function
-    box : 0.1                   # default: 7.5
-    cls : 0.5                   # default: 0.5
+    box : 1.0                   # default: 7.5, box loss
+    cls : 0.5                   # default: 0.5, classification loss
+    dfl : 3.0                   # default: 1.5, distributed focal loss
     multi_scale : False         # (bool) Whether to use multiscale during training
     #Augmentation
     translate : 0.1             # Default: 0.1 , valid: 0.0 - 1.0
@@ -155,7 +156,6 @@ For performing inference on dataset with or without ground truth label. Adjust t
         save : False
         verbose : False
         exist_ok : True
-        save_txt : False
         show : False
     save_crop: False
 

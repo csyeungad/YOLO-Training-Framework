@@ -9,26 +9,38 @@ train_cfg:
   pretrain_chkpt: null #relative path to pretrain chkpt or null to train from scratch
   model_cfg_yaml: yolo11s-cls.yaml #model configuration to train from scratch
   train_param: #Refer to default.yaml for all parameters
-    epochs: 10                 # Number of epochs to train for. Use more epochs, 1 is set for testing code.
+    #Trainer
+    epochs: 3                   # Number of epochs to train for.
+    batch: 0.8                  # Specific batch size: batch=16 / Auto mode for % GPU memory utilization (batch= 0.70)
+    patience : 20               # Number of epochs to wait without improvement in validation metrics before early stopping the training
+    workers : 1
+    device: 0                   # device used for training, device = 0,1
+    exist_ok : False            # If True, allows overwriting of an existing project/name directory 
+    save_period : 20            # Interval for chkpts save
+    plots : True                # Save plots and images during train/val
+    #Dataset
     imgsz: 320                  # Size of input images as integer, imgze : a -> resize longest size to a, while keeping aspect ratio, imgze : (w, h) -> resize img into square
     rect : False                # True: Pad img after resize to square, False: keep original aspect ratio
-    batch: 5                    # Number of images per batch
-    patience : 20
-    lr0 : 0.01
-    workers : 1 
-    single_cls : False          # (bool) train multi-class data as single-class
+    fraction : 0.1              # Train with subset of dataset, 1.0 for full dataset
+    single_cls : False          # (bool) train multi-class data as single-class    
+    #Optimizer
     optimizer: auto             # Optimizer to use, choices:[SGD, Adam, Adamax, AdamW, NAdam, RAdam, RMSProp, auto]
-    save_period : 25            #interval for chkpts save
-    plots : True                #save plots and images during train/val
-    fraction : 1.0              #train with subset of dataset, 1.0 for full dataset
-    exist_ok : True             #If True, allows overwriting of an existing project/name directory
-    box : 0.5                   # default: 7.5
-    cls : 0.5                   # default: 0.5
-    scale : 0.2
-    fliplr : 0.0                #flip prob.
+    lr0: 0.01                   # Initial learning rate
+    lrf: 0.01                   # Final learning rate as a fraction of the initial rate = (lr0 * lrf)
+    momentum: 0.937             # Momentum factor for SGD or beta1 for Adam optimizers, influencing the incorporation of past gradients in the current update
+    weight_decay: 0.0005        # L2 regularization term, penalizing large weights to prevent overfitting.
+    #Loss function
+    box : 0.1                   # default: 7.5, box loss
+    cls : 0.5                   # default: 0.5, classification loss
+    dfl : 3.0                   # default: 1.5, distributed focal loss
+    multi_scale : False         # (bool) Whether to use multiscale during training
+    #Augmentation
+    translate : 0.1             # Default: 0.1 , valid: 0.0 - 1.0
+    scale : 0.2                 # Default: 0.5 , valid: >=0.0
+    flipud: 0.0                 # Default: 0.0 , valid: 0.0 - 1.0
+    fliplr : 0.1                # Default: 0.5 , valid: 0.0 - 1.0
     mosaic : 0                  # Combines four training images into one, simulating different scene compositions and object interactions
     close_mosaic : 0
-    multi_scale : False         # (bool) Whether to use multiscale during training
 
 #For validation & prediction in val or testing set
 test_cfg: #Refer to default.yaml for all parameters
@@ -36,12 +48,12 @@ test_cfg: #Refer to default.yaml for all parameters
   CM_grouping_vis: True         # whether to group the prediction result in CM for visualization (Recommended for debugging)
   test_param:
     split: val                  #val / test dataset
-    batch: 5
+    batch: 1                    # Specific batch size: batch=16
     imgsz: 320
-    conf: 0.6
-    iou: 0.6
+    conf: 0.3
+    iou: 0.5
     save_json : True
     plots : True
-    verbose : False
+    verbose : True
     exist_ok : True
   
